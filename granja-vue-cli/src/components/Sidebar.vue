@@ -23,13 +23,13 @@
           </thead>
           <tbody>
             <tr v-for="(quantity, key, i) in cart" :key="i">
-              <td><i class="icofont-carrot icofont-3x"></i></td>
+              <td><i :class="`icofont-carrot icofont-3x`"></i></td>
               <td>{{ key }}</td>
               <td>$ {{ getPrice(key) }}</td>
               <td class="center">{{ quantity }}</td>
               <td>${{ (quantity * getPrice(key)).toFixed(2) }}</td>
               <td class="center">
-                <button class="btn btn-light cart-remove">&times;</button>
+                <button @click="removeItem(key)" class="btn btn-light cart-remove">&times;</button>
               </td>
             </tr>
           </tbody>
@@ -42,7 +42,7 @@
           <span
             ><strong>Total:</strong> $ {{ calculateTotal() }}</span
           >
-          <button class="btn btn-light">Confirmar Pedido</button>
+          <button @click="confirmOrder" class="btn btn-light">Confirmar Pedido</button>
         </div>
       </div>
     </div>
@@ -52,15 +52,10 @@
 <script>
 export default {
   props: ['toggle', 'cart', 'inventory'],
-  computed: {
-    cartTotal () {
-      return (this.cart.carrot * 4.82).toFixed(2)
-    }
-  },
   methods: {
     getPrice (name) {
-      const prod = this.inventory.find(p => p.name === name)
-      return prod.price.USD
+      const prod = this.inventory.find(p => p.description === name)
+      return prod.price
     },
     calculateTotal () {
       const cartEntries = Object.entries(this.cart)
@@ -69,6 +64,30 @@ export default {
       }, 0)
 
       return total.toFixed(2)
+    },
+    removeItem (name) {
+      delete this.cart[name]
+    },
+    confirmOrder () {
+      const products = []
+      Object.entries(this.cart).forEach(prod => {
+        const p = this.inventory.find(p => p.description === prod[0])
+        p.quantity = prod[1]
+        products.push(p)
+      })
+      const data = {
+        products, // Equivalente a poner products: products
+        total: +this.calculateTotal()
+      }
+
+      const options = {
+        body: JSON.stringify(data),
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      }
+      fetch('http://localhost:5000/orders', options)
+        .then(res => res.json())
+        .then(data => console.log(data))
     }
   }
 }

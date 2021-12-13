@@ -11,7 +11,7 @@
 
       <div class="recommended">
         <Card
-          v-for="(prod, index) in inventory.slice(0, 3)"
+          v-for="(prod, index) in inventory.slice(randomIndex, randomIndex + 3)"
           :key="prod.id"
           :prod="prod"
           :inventory="inventory"
@@ -30,6 +30,11 @@ import Card from '../components/Card'
 export default {
   name: 'Home',
   props: ['inventory', 'addToCart'],
+  data () {
+    return {
+      randomIndex: ~~(Math.random() * 13) /* los 2 signos es para hacer en forma binaria el Math.floor */
+    }
+  },
   components: {
     Card
   }
